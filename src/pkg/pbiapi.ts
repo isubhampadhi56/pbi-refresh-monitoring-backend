@@ -1,5 +1,5 @@
 import axios from "axios";
-async function getRefreshDetail(datasetDetail:any,accessToken:any){
+async function getRefreshDetail(datasetDetail:any,accessToken:any):Promise<any>{
     try{
         const {data,status} =  await axios.get(`https://api.powerbi.com/v1.0/myorg/groups/${datasetDetail.workspaceId}/datasets/${datasetDetail.datasetId}/refreshes?$top=1`,{
             headers: {'Authorization': accessToken},
@@ -16,9 +16,12 @@ async function getRefreshDetail(datasetDetail:any,accessToken:any){
     }
 }
 
-async function triggerRefresh(datasetId:string,accessToken:any){
+async function triggerRefresh(workspaceId:string|undefined,datasetId:string|undefined,accessToken:any){
+    if(!workspaceId || !datasetId){
+        throw new Error("workspaceId or datasetId is missing");
+    }
     try{
-        const{ status } =  await axios.post(`https://api.powerbi.com/v1.0/myorg/datasets/${datasetId}/refreshes`,null,{
+        const{ status } =  await axios.post(`https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/datasets/${datasetId}/refreshes`,null,{
             headers: {'Authorization': accessToken},
         })
         return status;

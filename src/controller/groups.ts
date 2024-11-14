@@ -1,5 +1,5 @@
 import { Request,Response } from "express";
-import {getAzureADToken} from "../pkg/ad"
+// import {getAzureADToken} from "../pkg/ad"
 import {getRefreshDetail} from "../pkg/pbiapi"
 // import { datasets, Dataset } from "../model/db"
 import { accessToken, dbClient } from "../config/config"
@@ -38,7 +38,7 @@ async function getRefreshStatus(req: Request, res: Response){
     let refreshTimes:any
     try{
         const refreshPromises = datasets.map(dataset => {
-            return getRefreshDetail(dataset,accessToken);
+            return getRefreshDetail(dataset,accessToken.pbi);
         })
         refreshTimes = await Promise.all(refreshPromises);
     }catch(error:any){
@@ -53,13 +53,19 @@ async function getRefreshStatus(req: Request, res: Response){
         const durationMinutes = durationSeconds / 60;
         const durationHours = durationMinutes/60;
         let refreshStatus = refreshTimes[index].value[0].status;
-        if(refreshStatus === "Unknown"){
-            refreshStatus = "In Progress"
-        }
-        dataset.refreshStatus = refreshStatus;
-        dataset.lastRefresh = refreshTimes[index].value[0].endTime;
         dataset.refreshStartTime = refreshTimes[index].value[0].startTime;
-        dataset.lastRefreshDuration = durationMinutes.toString();
+        if(refreshStatus === "Unknown"){
+            dataset.refreshStatus = "In Progress"
+            dataset.lastRefreshDuration = "---"
+        }else{
+            dataset.refreshStatus = refreshStatus;
+            dataset.lastRefresh = refreshTimes[index].value[0].endTime;
+            
+            dataset.lastRefreshDuration = `${(durationMinutes%60).toFixed(0)} mins`;
+            if(durationHours.toFixed(0) != '0'){
+                dataset.lastRefreshDuration = `${durationHours.toFixed(0)} hr ${(durationMinutes%60).toFixed(0)} mins`;
+            }
+        }
         return {
             id: dataset.id,
             dataset_name: dataset.datasetName,
@@ -127,7 +133,7 @@ async function deleteGroup(req: Request, res: Response){
     }
 }
 async function removeDatasetFromGroup(req: Request, res: Response){
-
+    return;
 } 
 export{
     getRefreshStatus,

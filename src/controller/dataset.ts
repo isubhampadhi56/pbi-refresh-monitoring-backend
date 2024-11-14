@@ -5,7 +5,10 @@ import { accessToken,dbClient } from "../config/config"
 async function pbiTriggerRefresh(req: Request, res: Response){
     const datasetId = req.body.datasetId;
     try{
-        const responseCode = await triggerRefresh(datasetId,accessToken);
+        const datasetDetail = await dbClient.datasetDetail.findFirst({ 
+            where: {datasetId: datasetId}
+        });
+        const responseCode = await triggerRefresh(datasetDetail?.workspaceId,datasetDetail?.datasetId,accessToken.pbi);
         if(responseCode === 202){
             res.json({
                 "message": "refresh triggered successfully"
@@ -20,7 +23,7 @@ async function pbiRefreshSchedule(req: Request, res: Response){
     const datasetId = String(req.query.datasetId);
     console.log(datasetId);
     try{
-        const data = await getRefreshSchedule(datasetId,accessToken);
+        const data = await getRefreshSchedule(datasetId,accessToken.pbi);
         res.json(data);
     }catch(err){
         res.json({"message": "something went wrong"})
@@ -56,7 +59,7 @@ async function addDataset(req: Request,res: Response){
         return;
     }
     try{
-        datasetName = await getDatasetName(workspaceId,datasetId,accessToken);
+        datasetName = await getDatasetName(workspaceId,datasetId,accessToken.pbi);
     }catch(err){
         res.status(404).json({message: "unable to retrieve dataset"})
         return

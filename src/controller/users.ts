@@ -50,6 +50,7 @@ async function userLogin(req: Request, res: Response){
         }
         const token = jwt.sign({
             userId: userDetail.id,
+            username: userDetail.username,
         },jwtSecret)
         console.log(token)
         res.setHeader('Authorization', 'Bearer ' + token)
@@ -59,7 +60,12 @@ async function userLogin(req: Request, res: Response){
     }
 }
 
+async function isAuthenticated(req: Request, res: Response) {
+    res.json({message: "user is already authenticated"});
+}
+
 export{
     userLogin,
-    getGroups
+    getGroups,
+    isAuthenticated
 }
